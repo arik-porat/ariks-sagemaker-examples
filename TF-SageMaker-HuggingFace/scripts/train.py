@@ -5,6 +5,7 @@ import sys
 
 import tensorflow as tf
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
+from tensorflow.keras.optimizers.schedules import PolynomialDecay
 
 
 if __name__ == "__main__":
@@ -13,10 +14,8 @@ if __name__ == "__main__":
 
     # Hyperparameters sent by the client are passed as command-line arguments to the script.
     parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--train_batch_size", type=int, default=16)
-    parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--model_id", type=str)
-    parser.add_argument("--learning_rate", type=str, default=3e-5)
+    parser.add_argument("--learning_rate", type=float, default=3e-5)
 
     # Data, model, and output directories
     parser.add_argument("--output_data_dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
@@ -45,9 +44,15 @@ if __name__ == "__main__":
     model = TFAutoModelForSequenceClassification.from_pretrained(
         args.model_id, num_labels=2, label2id={'neg': '0', 'pos': '1'}, id2label={'0': 'neg', '1': 'pos'}
     )
+    
+    # create Adam optimizer with learning rate scheduling
+    num_train_steps = len(tf_train_dataset) * args.epochs
+    lr_scheduler = PolynomialDecay(
+        initial_learning_rate=args.learning_rate, end_learning_rate=0.0, decay_steps=num_train_steps
+    )
 
     # fine optimizer and loss
-    optimizer = tf.keras.optimizers.Adam(learning_rate=args.learning_rate)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_scheduler)
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     metrics = [tf.keras.metrics.SparseCategoricalAccuracy()]
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
