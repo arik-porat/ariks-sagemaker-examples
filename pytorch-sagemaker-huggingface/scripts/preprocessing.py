@@ -7,13 +7,14 @@ def install(package):
 
 if __name__=='__main__':
     
-    tokenizer_name = 'distilbert-base-uncased'
-    dataset_name = 'imdb'
-    
     install('transformers==4.26')
     install('datasets==2.10.1')
+    
     from datasets import load_dataset
     from transformers import AutoTokenizer
+    
+    tokenizer_name = 'distilbert-base-uncased'
+    dataset_name = 'imdb'
 
     # load dataset
     dataset = load_dataset(dataset_name)
