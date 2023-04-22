@@ -1,17 +1,10 @@
 import os
 import subprocess
 import sys
-
-def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+from datasets import load_dataset
+from transformers import AutoTokenizer
 
 if __name__=='__main__':
-    
-    install('transformers==4.26')
-    install('datasets==2.10.1')
-    
-    from datasets import load_dataset
-    from transformers import AutoTokenizer
     
     tokenizer_name = 'distilbert-base-uncased'
     dataset_name = 'imdb'
