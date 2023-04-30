@@ -9,9 +9,6 @@ if __name__=='__main__':
     tokenizer_name = 'distilbert-base-uncased'
     dataset_name = 'imdb'
 
-    # load dataset
-    dataset = load_dataset(dataset_name)
-
     # download tokenizer
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
@@ -20,7 +17,7 @@ if __name__=='__main__':
         return tokenizer(batch['text'], padding='max_length', truncation=True)
 
     # load dataset
-    train_dataset, test_dataset = load_dataset('imdb', split=['train', 'test'])
+    train_dataset, test_dataset = load_dataset(dataset_name, split=['train', 'test'])
     test_dataset = test_dataset.shuffle().select(range(10000)) # smaller the size for test dataset to 10k 
 
     # tokenize dataset
@@ -32,6 +29,9 @@ if __name__=='__main__':
     train_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
     test_dataset = test_dataset.rename_column("label", "labels")
     test_dataset.set_format('torch', columns=['input_ids', 'attention_mask', 'labels'])
+    
+    train_dataset = train_dataset.remove_columns("text")
+    test_dataset = test_dataset.remove_columns("text")
 
     # save train_dataset to s3
     training_input_path = '/opt/ml/processing/train'
